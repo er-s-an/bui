@@ -1,0 +1,28 @@
+# Local
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+
+# Editors
+.vscode/
+.idea/
+
+# Build output
+dist/
+build/
+coverage/
+.cache/
+
+# Python (per-artifact, when used)
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Paperclip workspace state
+.omc/
