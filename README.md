@@ -16,7 +16,8 @@ and every writeup lives in `notes/<slug>.md`. The cadence —
 
 ## Toolchain
 
-- **Default: Node ≥ 20.** Tests run with the built-in `node --test` runner.
+- **Default: Node ≥ 20.** Tests run with `tsx --test` (Node's built-in test
+  runner, with TypeScript support so `.ts` test files work without a build).
 - **Lint:** Prettier (`prettier --check .`).
 - **Python optional per artifact.** If an artifact needs Python, document
   setup inside that artifact's directory.
@@ -26,6 +27,7 @@ and every writeup lives in `notes/<slug>.md`. The cadence —
 | Slug                                  | What it does                                              | One-command run                                                                                   |
 | ------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | [`agent-diary`](notes/agent-diary.md) | Static timeline visualizer for Paperclip company activity | `npm install && npm run diary -- --company BUI --days 7 && open artifacts/agent-diary/index.html` |
+| [`tiny-eval`](notes/tiny-eval.md)     | Markdown-driven eval harness for short factual QA         | `npm install && ANTHROPIC_API_KEY=... npm run eval`                                               |
 
 ## How to add a new artifact
 

@@ -27,6 +27,7 @@ venv/
 # Generated artifact data
 artifacts/agent-diary/data.json
 artifacts/agent-diary/data.js
+artifacts/tiny-eval/report.md
 
 # Paperclip workspace state
 .omc/

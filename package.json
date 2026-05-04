@@ -11,13 +11,17 @@
   "scripts": {
     "lint": "prettier --check .",
     "format": "prettier --write .",
-    "test": "node --test 'test/**/*.test.js'",
-    "diary": "tsx scripts/diary-fetch.ts"
+    "test": "tsx --test 'test/**/*.test.{js,ts}'",
+    "diary": "tsx scripts/diary-fetch.ts",
+    "eval": "tsx scripts/eval-run.ts"
   },
   "devDependencies": {
     "@types/node": "20.14.10",
     "prettier": "3.3.3",
     "tsx": "4.19.1",
     "typescript": "5.5.4"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.93.0"
   }
 }
