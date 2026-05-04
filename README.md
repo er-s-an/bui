@@ -20,6 +20,12 @@ and every writeup lives in `notes/<slug>.md`. The cadence doc is
 - **Python optional per artifact.** If an artifact needs Python, document
   setup inside that artifact's directory.
 
+## Artifacts
+
+| Slug          | What it does                                              | One-command run                           |
+| ------------- | --------------------------------------------------------- | ----------------------------------------- |
+| `agent-diary` | Static timeline visualizer for Paperclip company activity | `npm run diary -- --company BUI --days 7` |
+
 ## How to add a new artifact
 
 1. Pick a slug (kebab-case, e.g. `tiny-llm-eval`).

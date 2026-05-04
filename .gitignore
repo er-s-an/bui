@@ -24,5 +24,9 @@ venv/
 .ruff_cache/
 .mypy_cache/
 
+# Generated artifact data
+artifacts/agent-diary/data.json
+artifacts/agent-diary/data.js
+
 # Paperclip workspace state
 .omc/

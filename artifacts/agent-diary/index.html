@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent Diary</title>
+    <style>
+      :root {
+        --bg: #0f1117;
+        --card: #161922;
+        --border: #2a2e3b;
+        --text: #c9d1d9;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --done: #238636;
+        --wip: #bc8f00;
+        --blocked: #da3633;
+        --review: #8957e5;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      header {
+        padding: 24px 20px 12px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: rgba(15, 17, 23, 0.92);
+        backdrop-filter: blur(6px);
+        z-index: 10;
+      }
+      header h1 {
+        margin: 0 0 4px;
+        font-size: 1.25rem;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+        position: relative;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 1px 8px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .badge-done {
+        background: rgba(35, 134, 54, 0.15);
+        color: #3fb950;
+      }
+      .badge-wip {
+        background: rgba(188, 143, 0, 0.15);
+        color: #d29922;
+      }
+      .badge-blocked {
+        background: rgba(218, 54, 51, 0.15);
+        color: #f85149;
+      }
+      .badge-review {
+        background: rgba(137, 87, 229, 0.15);
+        color: #a371f7;
+      }
+      .badge-todo {
+        background: rgba(139, 148, 158, 0.15);
+        color: var(--muted);
+      }
+      .timeline {
+        position: relative;
+      }
+      .issue {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        position: relative;
+        transition: border-color 0.15s;
+      }
+      .issue:hover {
+        border-color: #3d444d;
+      }
+      .issue.child {
+        margin-left: 28px;
+        border-left: 3px solid var(--accent);
+      }
+      .issue-header {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .issue-id {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.8rem;
+        color: var(--accent);
+      }
+      .issue-title {
+        font-weight: 600;
+      }
+      .issue-meta {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .comments {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+      }
+      .comment {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+      }
+      .comment:last-child {
+        margin-bottom: 0;
+      }
+      .comment time {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .comment-body {
+        margin-top: 2px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .edge-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .edge-svg path {
+        stroke: #444c56;
+        stroke-width: 1.5;
+        fill: none;
+      }
+      .edge-svg marker path {
+        fill: #444c56;
+        stroke: none;
+      }
+      .blocker-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .empty {
+        color: var(--muted);
+        text-align: center;
+        padding: 40px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <h1>Agent Diary</h1>
+        <p id="subtitle">Loading …</p>
+      </div>
+    </header>
+    <div class="wrap">
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <script>
+      const statusBadge = {
+        done: 'badge-done',
+        in_progress: 'badge-wip',
+        blocked: 'badge-blocked',
+        in_review: 'badge-review',
+        todo: 'badge-todo',
+        backlog: 'badge-todo',
+        cancelled: 'badge-todo',
+      };
+
+      function fmtDate(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+
+      function badge(status) {
+        const cls = statusBadge[status] || 'badge-todo';
+        return `<span class="badge ${cls}">${status.replace(/_/g, ' ')}</span>`;
+      }
+
+      function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(
+          /[&<>"]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+        );
+      }
+
+      async function load() {
+        // Try data.js first (works from file://), then data.json
+        let data;
+        if (typeof window.__DIARY !== 'undefined') {
+          data = window.__DIARY;
+        } else {
+          const res = await fetch('data.json');
+          if (!res.ok) throw new Error('Could not load data.json');
+          data = await res.json();
+        }
+
+        const subtitle = `${data.company.name} (${data.company.issuePrefix}) · ${data.windowDays} days since ${fmtDate(data.since)} · ${data.issues.length} issues`;
+        document.getElementById('subtitle').textContent = subtitle;
+
+        const issuesById = new Map(data.issues.map((i) => [i.id, i]));
+        const agents = data.agents || {};
+
+        function agentName(id) {
+          return agents[id]?.name || id?.slice(0, 8) || '—';
+        }
+
+        // Build tree
+        const roots = [];
+        const children = new Map();
+        for (const issue of data.issues) {
+          if (issue.parentId && issuesById.has(issue.parentId)) {
+            if (!children.has(issue.parentId)) children.set(issue.parentId, []);
+            children.get(issue.parentId).push(issue);
+          } else {
+            roots.push(issue);
+          }
+        }
+
+        const timeline = document.getElementById('timeline');
+
+        function renderCard(issue, isChild) {
+          const blockedBy = (issue.blockedByIds || [])
+            .map((id) => issuesById.get(id))
+            .filter(Boolean);
+
+          let html = `<div class="issue ${isChild ? 'child' : ''}" id="issue-${esc(issue.id)}">`;
+          html += `<div class="issue-header">`;
+          html += `<span class="issue-id">${esc(issue.identifier)}</span>`;
+          html += `<span class="issue-title">${esc(issue.title)}</span>`;
+          html += badge(issue.status);
+          html += `</div>`;
+          html += `<div class="issue-meta">`;
+          html += `${esc(issue.priority)} priority`;
+          if (issue.assigneeAgentId) html += ` · ${esc(agentName(issue.assigneeAgentId))}`;
+          html += ` · ${fmtDate(issue.createdAt)}`;
+          if (issue.updatedAt !== issue.createdAt) html += ` – updated ${fmtDate(issue.updatedAt)}`;
+          html += `</div>`;
+
+          if (blockedBy.length) {
+            html +=
+              `<div class="blocker-label">Blocked by: ` +
+              blockedBy
+                .map(
+                  (b) =>
+                    `<a href="#issue-${esc(b.id)}" style="color:var(--accent);text-decoration:none;">${esc(b.identifier)}</a>`,
+                )
+                .join(', ') +
+              `</div>`;
+          }
+
+          if (issue.comments && issue.comments.length) {
+            html += `<div class="comments">`;
+            for (const c of issue.comments) {
+              html += `<div class="comment">`;
+              html += `<time>${fmtDate(c.createdAt)}</time>`;
+              if (c.authorAgentId) html += ` · ${esc(agentName(c.authorAgentId))}`;
+              html += `<div class="comment-body">${esc(c.body)}</div>`;
+              html += `</div>`;
+            }
+            html += `</div>`;
+          }
+
+          html += `</div>`;
+          return html;
+        }
+
+        let html = '';
+        for (const issue of roots) {
+          html += renderCard(issue, false);
+          for (const child of children.get(issue.id) || []) {
+            html += renderCard(child, true);
+          }
+        }
+
+        if (!html) html = '<div class="empty">No issues in the selected window.</div>';
+        timeline.innerHTML = html;
+
+        // Build edges from blockedByIds
+        const edges = [];
+        for (const issue of data.issues) {
+          for (const blockerId of issue.blockedByIds || []) {
+            edges.push({ from: issue.id, to: blockerId, type: 'blockedBy' });
+          }
+        }
+        requestAnimationFrame(() => drawEdges(edges));
+      }
+
+      function drawEdges(edges) {
+        const timeline = document.getElementById('timeline');
+        const existing = timeline.querySelector('.edge-svg');
+        if (existing) existing.remove();
+
+        const blockedEdges = edges.filter((e) => e.type === 'blockedBy');
+        if (!blockedEdges.length) return;
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'edge-svg');
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', 'arrow');
+        marker.setAttribute('viewBox', '0 0 10 10');
+        marker.setAttribute('refX', '8');
+        marker.setAttribute('refY', '5');
+        marker.setAttribute('markerWidth', '6');
+        marker.setAttribute('markerHeight', '6');
+        marker.setAttribute('orient', 'auto-start-reverse');
+        const mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        mp.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+        marker.appendChild(mp);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+        timeline.appendChild(svg);
+
+        function pos(el) {
+          const r = el.getBoundingClientRect();
+          const pr = timeline.getBoundingClientRect();
+          return { x: r.left - pr.left + r.width / 2, y: r.top - pr.top, w: r.width, h: r.height };
+        }
+
+        for (const edge of blockedEdges) {
+          const fromEl = document.getElementById(`issue-${edge.from}`);
+          const toEl = document.getElementById(`issue-${edge.to}`);
+          if (!fromEl || !toEl) continue;
+          const a = pos(fromEl);
+          const b = pos(toEl);
+
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const midY = Math.min(a.y, b.y) - 20;
+          const d = `M ${a.x} ${a.y} C ${a.x} ${midY}, ${b.x} ${midY}, ${b.x} ${b.y}`;
+          path.setAttribute('d', d);
+          path.setAttribute('marker-end', 'url(#arrow)');
+          path.setAttribute('stroke-dasharray', '4 3');
+          svg.appendChild(path);
+        }
+
+        const pr = timeline.getBoundingClientRect();
+        svg.style.width = pr.width + 'px';
+        svg.style.height = pr.height + 'px';
+      }
+
+      window.addEventListener('resize', () => {
+        if (typeof window.__DIARY !== 'undefined') {
+          const edges = [];
+          for (const issue of window.__DIARY.issues) {
+            for (const blockerId of issue.blockedByIds || []) {
+              edges.push({ from: issue.id, to: blockerId, type: 'blockedBy' });
+            }
+          }
+          drawEdges(edges);
+        }
+      });
+
+      load().catch((err) => {
+        document.getElementById('timeline').innerHTML =
+          `<div class="empty">Error: ${esc(err.message)}</div>`;
+      });
+    </script>
+  </body>
+</html>

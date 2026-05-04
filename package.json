@@ -11,9 +11,13 @@
   "scripts": {
     "lint": "prettier --check .",
     "format": "prettier --write .",
-    "test": "node --test 'test/**/*.test.js'"
+    "test": "node --test 'test/**/*.test.js'",
+    "diary": "tsx scripts/diary-fetch.ts"
   },
   "devDependencies": {
-    "prettier": "3.3.3"
+    "@types/node": "20.14.10",
+    "prettier": "3.3.3",
+    "tsx": "4.19.1",
+    "typescript": "5.5.4"
   }
 }
