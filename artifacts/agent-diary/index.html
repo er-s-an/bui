@@ -8,14 +8,22 @@
       :root {
         --bg: #0f1117;
         --card: #161922;
+        --card-2: #1c202b;
         --border: #2a2e3b;
         --text: #c9d1d9;
         --muted: #8b949e;
         --accent: #58a6ff;
-        --done: #238636;
-        --wip: #bc8f00;
-        --blocked: #da3633;
-        --review: #8957e5;
+
+        --done: #3fb950;
+        --wip: #d29922;
+        --blocked: #f85149;
+        --review: #a371f7;
+        --neutral: #8b949e;
+
+        --prio-critical: #ff7b72;
+        --prio-high: #ffa657;
+        --prio-medium: #d29922;
+        --prio-low: #8b949e;
       }
       * {
         box-sizing: border-box;
@@ -25,7 +33,7 @@
         font-family:
           system-ui,
           -apple-system,
-          Segoe UI,
+          'Segoe UI',
           Roboto,
           Helvetica,
           Arial,
@@ -34,8 +42,8 @@
         color: var(--text);
         line-height: 1.5;
       }
-      header {
-        padding: 24px 20px 12px;
+      header.diary {
+        padding: 20px 20px 14px;
         border-bottom: 1px solid var(--border);
         position: sticky;
         top: 0;
@@ -43,19 +51,42 @@
         backdrop-filter: blur(6px);
         z-index: 10;
       }
-      header h1 {
+      header.diary h1 {
         margin: 0 0 4px;
-        font-size: 1.25rem;
+        font-size: 1.2rem;
+        letter-spacing: 0.2px;
       }
-      header p {
+      header.diary p.sub {
         margin: 0;
         color: var(--muted);
-        font-size: 0.875rem;
+        font-size: 0.85rem;
+      }
+      .legend {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .legend .agent {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 0.75rem;
+      }
+      .legend .agent .role {
+        color: var(--muted);
       }
       .wrap {
-        max-width: 960px;
+        max-width: 980px;
         margin: 0 auto;
         padding: 20px;
+        position: relative;
+      }
+      .timeline {
         position: relative;
       }
       .badge {
@@ -65,31 +96,56 @@
         padding: 1px 8px;
         border-radius: 999px;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
       }
-      .badge-done {
-        background: rgba(35, 134, 54, 0.15);
-        color: #3fb950;
+      .status-done {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--done);
       }
-      .badge-wip {
-        background: rgba(188, 143, 0, 0.15);
-        color: #d29922;
+      .status-in_progress {
+        background: rgba(210, 153, 34, 0.15);
+        color: var(--wip);
       }
-      .badge-blocked {
-        background: rgba(218, 54, 51, 0.15);
-        color: #f85149;
+      .status-blocked {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--blocked);
       }
-      .badge-review {
-        background: rgba(137, 87, 229, 0.15);
-        color: #a371f7;
+      .status-in_review {
+        background: rgba(163, 113, 247, 0.15);
+        color: var(--review);
       }
-      .badge-todo {
+      .status-todo {
         background: rgba(139, 148, 158, 0.15);
+        color: var(--neutral);
+      }
+      .status-backlog {
+        background: rgba(139, 148, 158, 0.15);
+        color: var(--neutral);
+      }
+      .status-cancelled {
+        background: rgba(139, 148, 158, 0.12);
+        color: var(--neutral);
+        text-decoration: line-through;
+      }
+      .priority {
+        background: rgba(139, 148, 158, 0.1);
         color: var(--muted);
+        text-transform: lowercase;
       }
-      .timeline {
-        position: relative;
+      .priority-critical {
+        color: var(--prio-critical);
       }
+      .priority-high {
+        color: var(--prio-high);
+      }
+      .priority-medium {
+        color: var(--prio-medium);
+      }
+      .priority-low {
+        color: var(--prio-low);
+      }
+
       .issue {
         background: var(--card);
         border: 1px solid var(--border);
@@ -98,6 +154,10 @@
         margin-bottom: 12px;
         position: relative;
         transition: border-color 0.15s;
+      }
+      .issue:target {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent);
       }
       .issue:hover {
         border-color: #3d444d;
@@ -124,28 +184,143 @@
         font-size: 0.8rem;
         color: var(--muted);
         margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
       }
-      .comments {
+      .issue-meta .who {
+        color: var(--text);
+      }
+      .blocker-label {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .blocker-label a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .blocker-label a:hover {
+        text-decoration: underline;
+      }
+
+      details.desc,
+      details.comments {
         margin-top: 10px;
-        padding-top: 10px;
+      }
+      details.desc > summary,
+      details.comments > summary {
+        cursor: pointer;
+        list-style: none;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      details.desc > summary::marker,
+      details.desc > summary::-webkit-details-marker,
+      details.comments > summary::marker,
+      details.comments > summary::-webkit-details-marker {
+        display: none;
+      }
+      details > summary::before {
+        content: '▸ ';
+        display: inline-block;
+        margin-right: 2px;
+      }
+      details[open] > summary::before {
+        content: '▾ ';
+      }
+      details.desc > .body {
+        margin-top: 8px;
+        padding: 10px 12px;
+        background: var(--card-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.85rem;
+      }
+      .comments-list {
+        margin-top: 10px;
         border-top: 1px solid var(--border);
+        padding-top: 10px;
       }
       .comment {
-        font-size: 0.85rem;
+        background: var(--card-2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
         margin-bottom: 10px;
+        font-size: 0.85rem;
       }
       .comment:last-child {
         margin-bottom: 0;
       }
-      .comment time {
-        font-size: 0.75rem;
+      .comment .author {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .comment .author .who {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* Tiny markdown */
+      .md p {
+        margin: 0 0 8px 0;
+      }
+      .md p:last-child {
+        margin: 0;
+      }
+      .md h1,
+      .md h2,
+      .md h3 {
+        font-size: 0.85rem;
+        margin: 10px 0 4px 0;
+        color: var(--text);
+      }
+      .md ul,
+      .md ol {
+        margin: 4px 0 8px 0;
+        padding-left: 20px;
+      }
+      .md li {
+        margin: 2px 0;
+      }
+      .md a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .md a:hover {
+        text-decoration: underline;
+      }
+      .md code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 0.8rem;
+      }
+      .md pre {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 0.78rem;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-x: auto;
+        margin: 8px 0;
+      }
+      .md strong {
+        color: var(--text);
+      }
+      .md blockquote {
+        margin: 6px 0;
+        padding: 4px 12px;
+        border-left: 3px solid var(--border);
         color: var(--muted);
       }
-      .comment-body {
-        margin-top: 2px;
-        white-space: pre-wrap;
-        word-break: break-word;
-      }
+
       .edge-svg {
         position: absolute;
         top: 0;
@@ -154,245 +329,478 @@
         height: 100%;
         pointer-events: none;
         z-index: 0;
+        overflow: visible;
       }
       .edge-svg path {
-        stroke: #444c56;
-        stroke-width: 1.5;
         fill: none;
-      }
-      .edge-svg marker path {
-        fill: #444c56;
-        stroke: none;
-      }
-      .blocker-label {
-        font-size: 0.75rem;
-        color: var(--muted);
-        margin-top: 6px;
       }
       .empty {
         color: var(--muted);
         text-align: center;
         padding: 40px 0;
       }
+      footer.diary {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+        font-size: 0.78rem;
+        color: var(--muted);
+        border-top: 1px solid var(--border);
+      }
     </style>
   </head>
   <body>
-    <header>
-      <div class="wrap">
+    <header class="diary">
+      <div class="wrap" style="padding: 0">
         <h1>Agent Diary</h1>
-        <p id="subtitle">Loading …</p>
+        <p class="sub" id="subtitle">Loading …</p>
+        <div class="legend" id="legend"></div>
       </div>
     </header>
     <div class="wrap">
       <div class="timeline" id="timeline"></div>
     </div>
+    <footer class="diary" id="footer"></footer>
 
+    <script src="./data.js"></script>
     <script>
-      const statusBadge = {
-        done: 'badge-done',
-        in_progress: 'badge-wip',
-        blocked: 'badge-blocked',
-        in_review: 'badge-review',
-        todo: 'badge-todo',
-        backlog: 'badge-todo',
-        cancelled: 'badge-todo',
-      };
+      (function () {
+        // ---- helpers --------------------------------------------------
 
-      function fmtDate(iso) {
-        if (!iso) return '';
-        const d = new Date(iso);
-        return d.toLocaleString(undefined, {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      }
-
-      function badge(status) {
-        const cls = statusBadge[status] || 'badge-todo';
-        return `<span class="badge ${cls}">${status.replace(/_/g, ' ')}</span>`;
-      }
-
-      function esc(s) {
-        if (s == null) return '';
-        return String(s).replace(
-          /[&<>"]/g,
-          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
-        );
-      }
-
-      async function load() {
-        // Try data.js first (works from file://), then data.json
-        let data;
-        if (typeof window.__DIARY !== 'undefined') {
-          data = window.__DIARY;
-        } else {
-          const res = await fetch('data.json');
-          if (!res.ok) throw new Error('Could not load data.json');
-          data = await res.json();
+        function esc(s) {
+          if (s == null) return '';
+          return String(s).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+              })[c],
+          );
         }
 
-        const subtitle = `${data.company.name} (${data.company.issuePrefix}) · ${data.windowDays} days since ${fmtDate(data.since)} · ${data.issues.length} issues`;
-        document.getElementById('subtitle').textContent = subtitle;
-
-        const issuesById = new Map(data.issues.map((i) => [i.id, i]));
-        const agents = data.agents || {};
-
-        function agentName(id) {
-          return agents[id]?.name || id?.slice(0, 8) || '—';
+        function fmtDate(iso) {
+          if (!iso) return '';
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return '';
+          return d.toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
         }
 
-        // Build tree
-        const roots = [];
-        const children = new Map();
-        for (const issue of data.issues) {
-          if (issue.parentId && issuesById.has(issue.parentId)) {
-            if (!children.has(issue.parentId)) children.set(issue.parentId, []);
-            children.get(issue.parentId).push(issue);
-          } else {
-            roots.push(issue);
-          }
-        }
-
-        const timeline = document.getElementById('timeline');
-
-        function renderCard(issue, isChild) {
-          const blockedBy = (issue.blockedByIds || [])
-            .map((id) => issuesById.get(id))
+        // Tiny markdown subset: paragraphs, headers, bullet lists, bold,
+        // italic, inline code, fenced code, links. Good enough for the
+        // markdown-flavored comments BUI agents write.
+        function mdToHtml(src) {
+          if (!src) return '';
+          let text = String(src).replace(/\r\n?/g, '\n');
+          // Stash fenced code first.
+          const fences = [];
+          text = text.replace(/```([\s\S]*?)```/g, (_, body) => {
+            fences.push(body);
+            return '\u0000F' + (fences.length - 1) + '\u0000';
+          });
+          text = esc(text);
+          // Restore fences as <pre>.
+          text = text.replace(
+            /\u0000F(\d+)\u0000/g,
+            (_, i) => '<pre>' + esc(fences[Number(i)] || '') + '</pre>',
+          );
+          // Inline code (don't recurse into existing <pre>; we already
+          // restored those as raw HTML, but their content is escaped, so
+          // we must avoid running this on whatever survives inside).
+          text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+          // Links [label](url). Allow http(s)/mailto/anchor.
+          text = text.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, url) => {
+            const safe = /^(https?:|mailto:|#|\/)/i.test(url) ? url : '#';
+            const internal = /^(#|\/)/.test(safe);
+            const target = internal ? '' : ' target="_blank" rel="noopener noreferrer"';
+            return '<a href="' + safe + '"' + target + '>' + label + '</a>';
+          });
+          // Bold and italic.
+          text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+          text = text.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+          // Block-level: split on blank lines.
+          const blocks = text
+            .split(/\n{2,}/)
+            .map((b) => b.trim())
             .filter(Boolean);
-
-          let html = `<div class="issue ${isChild ? 'child' : ''}" id="issue-${esc(issue.id)}">`;
-          html += `<div class="issue-header">`;
-          html += `<span class="issue-id">${esc(issue.identifier)}</span>`;
-          html += `<span class="issue-title">${esc(issue.title)}</span>`;
-          html += badge(issue.status);
-          html += `</div>`;
-          html += `<div class="issue-meta">`;
-          html += `${esc(issue.priority)} priority`;
-          if (issue.assigneeAgentId) html += ` · ${esc(agentName(issue.assigneeAgentId))}`;
-          html += ` · ${fmtDate(issue.createdAt)}`;
-          if (issue.updatedAt !== issue.createdAt) html += ` – updated ${fmtDate(issue.updatedAt)}`;
-          html += `</div>`;
-
-          if (blockedBy.length) {
-            html +=
-              `<div class="blocker-label">Blocked by: ` +
-              blockedBy
-                .map(
-                  (b) =>
-                    `<a href="#issue-${esc(b.id)}" style="color:var(--accent);text-decoration:none;">${esc(b.identifier)}</a>`,
-                )
-                .join(', ') +
-              `</div>`;
-          }
-
-          if (issue.comments && issue.comments.length) {
-            html += `<div class="comments">`;
-            for (const c of issue.comments) {
-              html += `<div class="comment">`;
-              html += `<time>${fmtDate(c.createdAt)}</time>`;
-              if (c.authorAgentId) html += ` · ${esc(agentName(c.authorAgentId))}`;
-              html += `<div class="comment-body">${esc(c.body)}</div>`;
-              html += `</div>`;
+          const out = blocks.map((b) => {
+            if (/^<pre>/.test(b)) return b;
+            const h = b.match(/^(#{1,3})\s+(.*)$/);
+            if (h) {
+              const lvl = Math.min(3, h[1].length);
+              return '<h' + lvl + '>' + h[2] + '</h' + lvl + '>';
             }
-            html += `</div>`;
+            const lines = b.split('\n');
+            if (lines.every((l) => /^\s*[-*]\s+/.test(l))) {
+              return (
+                '<ul>' +
+                lines.map((l) => '<li>' + l.replace(/^\s*[-*]\s+/, '') + '</li>').join('') +
+                '</ul>'
+              );
+            }
+            if (lines.every((l) => /^\s*&gt;\s?/.test(l))) {
+              return (
+                '<blockquote>' +
+                lines.map((l) => l.replace(/^\s*&gt;\s?/, '')).join('<br>') +
+                '</blockquote>'
+              );
+            }
+            return '<p>' + b.replace(/\n/g, '<br>') + '</p>';
+          });
+          return out.join('');
+        }
+
+        function statusClass(s) {
+          return 'status-' + String(s || 'todo').replace(/[^a-z_]/g, '');
+        }
+        function priorityClass(p) {
+          return 'priority priority-' + String(p || 'low').replace(/[^a-z_]/g, '');
+        }
+
+        // ---- load data -----------------------------------------------
+
+        async function loadData() {
+          if (typeof window.__DIARY !== 'undefined') return window.__DIARY;
+          const res = await fetch('./data.json');
+          if (!res.ok) throw new Error('Could not load data.json');
+          return await res.json();
+        }
+
+        // ---- main ----------------------------------------------------
+
+        loadData()
+          .then(render)
+          .catch((err) => {
+            document.getElementById('timeline').innerHTML =
+              '<div class="empty">Error: ' + esc(err.message) + '</div>';
+          });
+
+        function render(data) {
+          document.title = 'Agent Diary — ' + (data.company.issuePrefix || data.company.name);
+
+          const subtitle =
+            data.company.name +
+            ' (' +
+            data.company.issuePrefix +
+            ') · last ' +
+            data.windowDays +
+            ' days · ' +
+            data.issues.length +
+            ' issues · since ' +
+            fmtDate(data.since);
+          document.getElementById('subtitle').textContent = subtitle;
+
+          // Agent legend.
+          const legend = document.getElementById('legend');
+          const agents = Object.values(data.agents || {}).sort((a, b) =>
+            a.name.localeCompare(b.name),
+          );
+          for (const a of agents) {
+            const span = document.createElement('span');
+            span.className = 'agent';
+            span.innerHTML =
+              '<span>' + esc(a.name) + '</span><span class="role">' + esc(a.role) + '</span>';
+            legend.appendChild(span);
           }
 
-          html += `</div>`;
-          return html;
-        }
-
-        let html = '';
-        for (const issue of roots) {
-          html += renderCard(issue, false);
-          for (const child of children.get(issue.id) || []) {
-            html += renderCard(child, true);
+          const issuesById = new Map(data.issues.map((i) => [i.id, i]));
+          function agentName(id) {
+            return (
+              (data.agents && data.agents[id] && data.agents[id].name) ||
+              (id ? id.slice(0, 8) : '—')
+            );
           }
-        }
 
-        if (!html) html = '<div class="empty">No issues in the selected window.</div>';
-        timeline.innerHTML = html;
-
-        // Build edges from blockedByIds
-        const edges = [];
-        for (const issue of data.issues) {
-          for (const blockerId of issue.blockedByIds || []) {
-            edges.push({ from: issue.id, to: blockerId, type: 'blockedBy' });
-          }
-        }
-        requestAnimationFrame(() => drawEdges(edges));
-      }
-
-      function drawEdges(edges) {
-        const timeline = document.getElementById('timeline');
-        const existing = timeline.querySelector('.edge-svg');
-        if (existing) existing.remove();
-
-        const blockedEdges = edges.filter((e) => e.type === 'blockedBy');
-        if (!blockedEdges.length) return;
-
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('class', 'edge-svg');
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-        marker.setAttribute('id', 'arrow');
-        marker.setAttribute('viewBox', '0 0 10 10');
-        marker.setAttribute('refX', '8');
-        marker.setAttribute('refY', '5');
-        marker.setAttribute('markerWidth', '6');
-        marker.setAttribute('markerHeight', '6');
-        marker.setAttribute('orient', 'auto-start-reverse');
-        const mp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        mp.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-        marker.appendChild(mp);
-        defs.appendChild(marker);
-        svg.appendChild(defs);
-        timeline.appendChild(svg);
-
-        function pos(el) {
-          const r = el.getBoundingClientRect();
-          const pr = timeline.getBoundingClientRect();
-          return { x: r.left - pr.left + r.width / 2, y: r.top - pr.top, w: r.width, h: r.height };
-        }
-
-        for (const edge of blockedEdges) {
-          const fromEl = document.getElementById(`issue-${edge.from}`);
-          const toEl = document.getElementById(`issue-${edge.to}`);
-          if (!fromEl || !toEl) continue;
-          const a = pos(fromEl);
-          const b = pos(toEl);
-
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          const midY = Math.min(a.y, b.y) - 20;
-          const d = `M ${a.x} ${a.y} C ${a.x} ${midY}, ${b.x} ${midY}, ${b.x} ${b.y}`;
-          path.setAttribute('d', d);
-          path.setAttribute('marker-end', 'url(#arrow)');
-          path.setAttribute('stroke-dasharray', '4 3');
-          svg.appendChild(path);
-        }
-
-        const pr = timeline.getBoundingClientRect();
-        svg.style.width = pr.width + 'px';
-        svg.style.height = pr.height + 'px';
-      }
-
-      window.addEventListener('resize', () => {
-        if (typeof window.__DIARY !== 'undefined') {
-          const edges = [];
-          for (const issue of window.__DIARY.issues) {
-            for (const blockerId of issue.blockedByIds || []) {
-              edges.push({ from: issue.id, to: blockerId, type: 'blockedBy' });
+          // Build tree by parent.
+          const roots = [];
+          const children = new Map();
+          for (const issue of data.issues) {
+            if (issue.parentId && issuesById.has(issue.parentId)) {
+              if (!children.has(issue.parentId)) children.set(issue.parentId, []);
+              children.get(issue.parentId).push(issue);
+            } else {
+              roots.push(issue);
             }
           }
-          drawEdges(edges);
-        }
-      });
+          const byCreatedAsc = (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt);
+          roots.sort(byCreatedAsc);
+          for (const arr of children.values()) arr.sort(byCreatedAsc);
 
-      load().catch((err) => {
-        document.getElementById('timeline').innerHTML =
-          `<div class="empty">Error: ${esc(err.message)}</div>`;
-      });
+          const timeline = document.getElementById('timeline');
+          timeline.innerHTML = '';
+          if (!data.issues.length) {
+            timeline.innerHTML = '<div class="empty">No issues in window.</div>';
+          } else {
+            for (const r of roots) {
+              timeline.appendChild(renderCard(r, false));
+              for (const c of children.get(r.id) || []) {
+                timeline.appendChild(renderCard(c, true));
+              }
+            }
+          }
+
+          function renderCard(issue, isChild) {
+            const el = document.createElement('div');
+            el.className = 'issue' + (isChild ? ' child' : '');
+            el.id = 'issue-' + issue.id;
+
+            // Header row.
+            const head = document.createElement('div');
+            head.className = 'issue-header';
+            head.innerHTML =
+              '<span class="issue-id">' +
+              esc(issue.identifier) +
+              '</span>' +
+              '<span class="issue-title">' +
+              esc(issue.title) +
+              '</span>' +
+              '<span class="badge ' +
+              statusClass(issue.status) +
+              '">' +
+              esc(String(issue.status).replace(/_/g, ' ')) +
+              '</span>' +
+              '<span class="badge ' +
+              priorityClass(issue.priority) +
+              '">' +
+              esc(issue.priority) +
+              '</span>';
+            el.appendChild(head);
+
+            // Meta row.
+            const meta = document.createElement('div');
+            meta.className = 'issue-meta';
+            const parts = [];
+            parts.push(
+              '<span>created ' +
+                esc(fmtDate(issue.createdAt)) +
+                (issue.createdByAgentId
+                  ? ' by <span class="who">' + esc(agentName(issue.createdByAgentId)) + '</span>'
+                  : '') +
+                '</span>',
+            );
+            if (issue.assigneeAgentId) {
+              parts.push(
+                '<span>assigned <span class="who">' +
+                  esc(agentName(issue.assigneeAgentId)) +
+                  '</span></span>',
+              );
+            }
+            if (issue.completedAt) {
+              parts.push('<span>done ' + esc(fmtDate(issue.completedAt)) + '</span>');
+            } else if (issue.cancelledAt) {
+              parts.push('<span>cancelled ' + esc(fmtDate(issue.cancelledAt)) + '</span>');
+            } else if (issue.updatedAt && issue.updatedAt !== issue.createdAt) {
+              parts.push('<span>updated ' + esc(fmtDate(issue.updatedAt)) + '</span>');
+            }
+            if (issue.parentId && issuesById.has(issue.parentId)) {
+              parts.push(
+                '<span>↳ child of <a href="#issue-' +
+                  esc(issue.parentId) +
+                  '" class="who" style="color:var(--accent);text-decoration:none">' +
+                  esc(issuesById.get(issue.parentId).identifier) +
+                  '</a></span>',
+              );
+            }
+            meta.innerHTML = parts.join('');
+            el.appendChild(meta);
+
+            // Blockers (text).
+            const blockedBy = (issue.blockedByIds || [])
+              .map((id) => issuesById.get(id))
+              .filter(Boolean);
+            if (blockedBy.length) {
+              const bl = document.createElement('div');
+              bl.className = 'blocker-label';
+              bl.innerHTML =
+                'Blocked by: ' +
+                blockedBy
+                  .map((b) => '<a href="#issue-' + esc(b.id) + '">' + esc(b.identifier) + '</a>')
+                  .join(', ');
+              el.appendChild(bl);
+            }
+
+            // Description (collapsible).
+            if (issue.description) {
+              const det = document.createElement('details');
+              det.className = 'desc';
+              const sum = document.createElement('summary');
+              sum.textContent = 'description';
+              det.appendChild(sum);
+              const body = document.createElement('div');
+              body.className = 'body md';
+              body.innerHTML = mdToHtml(issue.description);
+              det.appendChild(body);
+              det.addEventListener('toggle', () => requestAnimationFrame(layoutEdges));
+              el.appendChild(det);
+            }
+
+            // Comments (collapsible).
+            if (issue.comments && issue.comments.length) {
+              const det = document.createElement('details');
+              det.className = 'comments';
+              const sum = document.createElement('summary');
+              sum.textContent =
+                issue.comments.length + ' comment' + (issue.comments.length === 1 ? '' : 's');
+              det.appendChild(sum);
+              const list = document.createElement('div');
+              list.className = 'comments-list';
+              for (const c of issue.comments) {
+                const cdiv = document.createElement('div');
+                cdiv.className = 'comment';
+                cdiv.innerHTML =
+                  '<div class="author"><span class="who">' +
+                  esc(agentName(c.authorAgentId)) +
+                  '</span> · ' +
+                  esc(fmtDate(c.createdAt)) +
+                  '</div>' +
+                  '<div class="md">' +
+                  mdToHtml(c.body) +
+                  '</div>';
+                list.appendChild(cdiv);
+              }
+              det.appendChild(list);
+              det.addEventListener('toggle', () => requestAnimationFrame(layoutEdges));
+              el.appendChild(det);
+            }
+
+            return el;
+          }
+
+          // Footer.
+          const totalComments = data.issues.reduce(
+            (n, i) => n + ((i.comments && i.comments.length) || 0),
+            0,
+          );
+          document.getElementById('footer').textContent =
+            'Generated ' +
+            fmtDate(data.generatedAt) +
+            ' · ' +
+            data.issues.length +
+            ' issues · ' +
+            totalComments +
+            ' comments · ' +
+            Object.keys(data.agents || {}).length +
+            ' agents.';
+
+          // Edge layout.
+          function layoutEdges() {
+            const old = timeline.querySelector('.edge-svg');
+            if (old) old.remove();
+
+            const edges = [];
+            for (const issue of data.issues) {
+              for (const blockerId of issue.blockedByIds || []) {
+                if (!issuesById.has(blockerId)) continue;
+                edges.push({
+                  blocker: blockerId,
+                  blocked: issue.id,
+                  status: (issuesById.get(blockerId) || {}).status,
+                });
+              }
+            }
+            if (!edges.length) return;
+
+            const SVGNS = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(SVGNS, 'svg');
+            svg.setAttribute('class', 'edge-svg');
+            // <defs> + arrow marker.
+            const defs = document.createElementNS(SVGNS, 'defs');
+            const marker = document.createElementNS(SVGNS, 'marker');
+            marker.setAttribute('id', 'arrow');
+            marker.setAttribute('viewBox', '0 0 10 10');
+            marker.setAttribute('refX', '8');
+            marker.setAttribute('refY', '5');
+            marker.setAttribute('markerWidth', '6');
+            marker.setAttribute('markerHeight', '6');
+            marker.setAttribute('orient', 'auto-start-reverse');
+            const mp = document.createElementNS(SVGNS, 'path');
+            mp.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            mp.setAttribute('fill', 'currentColor');
+            marker.appendChild(mp);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+            timeline.appendChild(svg);
+
+            const tlRect = timeline.getBoundingClientRect();
+            svg.setAttribute('width', timeline.scrollWidth);
+            svg.setAttribute('height', timeline.scrollHeight);
+
+            for (const e of edges) {
+              const a = document.getElementById('issue-' + e.blocker);
+              const b = document.getElementById('issue-' + e.blocked);
+              if (!a || !b) continue;
+              const ar = a.getBoundingClientRect();
+              const br = b.getBoundingClientRect();
+              // Anchor to right edge so curves don't overlap card content.
+              const x1 = ar.right - tlRect.left + 6;
+              const y1 = ar.top - tlRect.top + ar.height / 2;
+              const x2 = br.right - tlRect.left + 6;
+              const y2 = br.top - tlRect.top + br.height / 2;
+              const dx = Math.max(40, Math.min(140, Math.abs(y2 - y1) * 0.25));
+              const cx = Math.max(x1, x2) + dx;
+
+              const stroke =
+                getComputedStyle(document.documentElement)
+                  .getPropertyValue(
+                    e.status === 'done'
+                      ? '--done'
+                      : e.status === 'in_progress'
+                        ? '--wip'
+                        : e.status === 'in_review'
+                          ? '--review'
+                          : e.status === 'blocked'
+                            ? '--blocked'
+                            : '--neutral',
+                  )
+                  .trim() || '#888';
+
+              const path = document.createElementNS(SVGNS, 'path');
+              path.setAttribute(
+                'd',
+                'M ' +
+                  x1 +
+                  ' ' +
+                  y1 +
+                  ' C ' +
+                  cx +
+                  ' ' +
+                  y1 +
+                  ', ' +
+                  cx +
+                  ' ' +
+                  y2 +
+                  ', ' +
+                  x2 +
+                  ' ' +
+                  y2,
+              );
+              path.setAttribute('stroke', stroke);
+              path.setAttribute('stroke-width', '1.5');
+              path.setAttribute('stroke-dasharray', '4 4');
+              path.setAttribute('opacity', '0.75');
+              path.setAttribute('marker-end', 'url(#arrow)');
+              path.setAttribute('color', stroke);
+              svg.appendChild(path);
+            }
+          }
+
+          window.addEventListener('resize', () => requestAnimationFrame(layoutEdges));
+          if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => requestAnimationFrame(layoutEdges));
+          }
+          requestAnimationFrame(layoutEdges);
+          // expose so toggles can re-layout
+          window.__DIARY_LAYOUT_EDGES = layoutEdges;
+        }
+      })();
     </script>
   </body>
 </html>

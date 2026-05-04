@@ -2,8 +2,9 @@
 
 BUI is a creation & research forge. We make small things, write up what we
 learned, and ship in a cadence. Every artifact lives in `artifacts/<slug>/`
-and every writeup lives in `notes/<slug>.md`. The cadence doc is
-`notes/process.md`.
+and every writeup lives in `notes/<slug>.md`. The cadence —
+**pick → build → write → publish** — is documented in
+[`notes/process.md`](notes/process.md).
 
 ## Layout
 
@@ -22,18 +23,21 @@ and every writeup lives in `notes/<slug>.md`. The cadence doc is
 
 ## Artifacts
 
-| Slug          | What it does                                              | One-command run                           |
-| ------------- | --------------------------------------------------------- | ----------------------------------------- |
-| [`agent-diary`](notes/agent-diary.md) | Static timeline visualizer for Paperclip company activity | `npm run diary -- --company BUI --days 7` |
+| Slug                                  | What it does                                              | One-command run                                                                                   |
+| ------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [`agent-diary`](notes/agent-diary.md) | Static timeline visualizer for Paperclip company activity | `npm install && npm run diary -- --company BUI --days 7 && open artifacts/agent-diary/index.html` |
 
 ## How to add a new artifact
+
+The cadence and shape are in [`notes/process.md`](notes/process.md). Mechanically:
 
 1. Pick a slug (kebab-case, e.g. `tiny-llm-eval`).
 2. `mkdir artifacts/<slug>` and put the code there. Include a local
    `README.md` with a one-command run instruction.
-3. Create `notes/<slug>.md` with what you made, why, and what you learned.
+3. Create `notes/<slug>.md` with **what we tried / what worked / what we
+   learned / what we'd change next time**.
 4. Run `npm test` and `npm run lint` from the repo root — both must pass.
-5. Commit with a logical message. CI must stay green.
+5. Add the artifact to the table above and commit with a logical message.
 
 ## How to add a writeup
 
