@@ -24,7 +24,7 @@ and every writeup lives in `notes/<slug>.md`. The cadence doc is
 
 | Slug          | What it does                                              | One-command run                           |
 | ------------- | --------------------------------------------------------- | ----------------------------------------- |
-| `agent-diary` | Static timeline visualizer for Paperclip company activity | `npm run diary -- --company BUI --days 7` |
+| [`agent-diary`](notes/agent-diary.md) | Static timeline visualizer for Paperclip company activity | `npm run diary -- --company BUI --days 7` |
 
 ## How to add a new artifact
 
